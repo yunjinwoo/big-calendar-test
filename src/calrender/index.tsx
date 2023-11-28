@@ -5,6 +5,7 @@ import { Events } from "./events";
 import { useEvents } from "./useEvents";
 import { useBearState } from "./Store";
 import { ReactDatePickerTest } from "./DatePicker";
+import { useEffect } from "react";
 
 const localizer = momentLocalizer(moment);
 
@@ -19,6 +20,7 @@ const MyCalendar = () => {
       @{dateStr.date?.toString()}@
       <Calendar
         localizer={localizer}
+        defaultDate={dateStr.date && moment(dateStr.date).toDate()}
         events={
           data ?? [
             {
@@ -46,7 +48,9 @@ const MyCalendar = () => {
     </div>
   );
 };
-/* 
+/*
+https://jquense.github.io/react-big-calendar/examples/?path=/docs/props--components
+
 https://codesandbox.io/p/sandbox/react-big-calendar-example-ptt3h?file=%2Fsrc%2FCalendar1.js%3A92%2C5-92%2C18
 
 class CustomToolbar extends Toolbar {
@@ -83,13 +87,30 @@ const CustomToolbar = (toolbar: ToolbarProps)  => {
   //const today = () => this.navigate('TODAY')
   console.log('CustomToolbar - toolbar', toolbar)
   console.log('CustomToolbar - toolbar.date', toolbar.date)
+
+  /* 
+  const dateStr = useBearState();
+  // console.log('dateStr = useBearState() ', dateStr.date?.toString())
+  // toolbar.
+  //toolbar.date
+   //   @{dateStr.date?.toString()}@
+  console.log('@@toolbar.date', toolbar.date)
+  useEffect(()=>{
+    if(dateStr.date){
+      toolbar.onNavigate("DATE", moment(dateStr.date).toDate());
+    } 
+  },[dateStr.date]) */
+  
   return (
     <div className="toolbar-container">
       <div className="back-next-buttons">
         <button className="btn btn-back" onClick={()=>toolbar.onNavigate("TODAY")}>ToDay</button>
         <button className="btn btn-back" onClick={()=>toolbar.onNavigate("PREV")}>Prev</button>
         <button className="btn btn-back" onClick={()=>toolbar.onNavigate("NEXT")}>Next</button>
-        <label className="label-date"><ReactDatePickerTest /></label>
+        <label className="label-date"><ReactDatePickerTest onChange={(date:Date)=>{
+          toolbar.onNavigate("DATE", moment(date).toDate());
+        }}/></label>
+        <label className="label-date">{moment(toolbar.date).format("YYYY-MM-DD")}</label>
       </div>
       
       <div className="filter-container">

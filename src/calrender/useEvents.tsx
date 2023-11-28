@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Event } from "react-big-calendar";
 
 export const useEvents = () => {
-  const [data, setData] = useState<Event>();
+  const [data, setData] = useState<Event[]>();
   //https://dummyapi.io/explorer
   const fetchData = () => {
     console.log('---fetchData---')
