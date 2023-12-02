@@ -6,18 +6,23 @@ import { useEvents } from "./useEvents";
 import { useBearState } from "./Store";
 import { ReactDatePickerTest } from "./DatePicker";
 import { useEffect } from "react";
+import { useUsers } from "./useUsers";
+import { Search } from "./Search";
 
 const localizer = momentLocalizer(moment);
 
 const MyCalendar = () => {
-  const { data } = useEvents();
+  const { data, tags ,dataUpdate} = useEvents();
   console.log("useEvents - data", data);
-
-  const dateStr = useBearState();
   
+  const dateStr = useBearState();
+  const onChangeTag = (tag:string)=>{
+    dataUpdate(tag)
+  }
   return (
     <div>
       @{dateStr.date?.toString()}@
+      <Search tags={tags} onChangeTag={onChangeTag}/>
       <Calendar
         localizer={localizer}
         defaultDate={dateStr.date && moment(dateStr.date).toDate()}

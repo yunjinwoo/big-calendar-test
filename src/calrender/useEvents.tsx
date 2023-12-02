@@ -1,28 +1,43 @@
 import moment from "moment";
 import { useState, useEffect } from "react";
 import { Event } from "react-big-calendar";
-
+import { useApiFetch } from "./useApiFetch";
+import { useBearState } from "./Store";
+interface Item extends Event {
+  tags?: string[];
+}
 export const useEvents = () => {
-  const [data, setData] = useState<Event[]>();
-  //https://dummyapi.io/explorer
-  const fetchData = () => {
-    console.log('---fetchData---')
-    fetch(
-      "https://dummyapi.io/data/v1/post"
-   , {
-    headers:{
-      "App-Id":"6563747a46118f1534d8b5a9"
+  const fetch = useApiFetch("port");
+  const [dataApi, setDataApi] = useState<Item[]>();
+  const [data, setData] = useState<Item[]>();
+  const [tags, setTags] = useState<string[]>();
+  const dateStr = useBearState();
+
+  useEffect(() => {
+    if (fetch.data) {
+      let selectDate = moment(dateStr.date).toDate();
+      const fetchData = fetch.data.map((row) => {
+        return rowToCalenderRow(
+          row,
+          selectDate.getFullYear(),
+          selectDate.getMonth()
+        );
+      });
+      setDataApi(fetchData);
+      setData(fetchData);
+      let tags: string[] = [];
+      fetchData.forEach((r) => {
+        if (r?.tags) tags = [...tags, ...r.tags];
+      });
+      setTags([...new Set(tags)]);
     }
-   } )
-      .then((response) => response.json())
-      .then (response => {
-        console.log("response 2:", response)
-        setData(response.data.map(rowToCalenderRow))
-      })
-      .catch((error) => console.log("error:", error));
-  };
-  
-  const rowToCalenderRow = (row:any):Event=>{
+  }, [fetch.data, dateStr]);
+
+  const rowToCalenderRow = (
+    row: any,
+    year: number = 2023,
+    month: number = 11
+  ): Item => {
     /**
      {
         "id": "60d21b4667d0d8992e610c85",
@@ -44,21 +59,38 @@ export const useEvents = () => {
         }
     }
      */
-    const date = moment(row.publishDate)
-    date.set("year", 2023)
-    date.set("month", 10)
+    const date = moment(row.publishDate);
+    date.set("year", year);
+    date.set("month", month);
     return {
-     // id:row.id ,
-      title:row.text ,
-      start:date.toDate() ,
-      end:date.add(2, 'days').toDate()
-    }
-  }
-  useEffect(() => {
-    return () => { fetchData() };
-  }, []);
+      // id:row.id ,
+      tags: row.tags,
+      title: row.text,
+      start: date.toDate(),
+      end: date.add(2, "days").toDate(),
+    };
+  };
 
   return {
     data,
+    tags,
+    dataUpdate: (tag: string) => {
+      console.group("tag", tag);
+      if (tag === "") {
+        setData(dataApi);
+      } else {
+        setData(
+          dataApi?.filter((r) => {
+            if (r.tags) {
+              console.log("tags", tags);
+              return r.tags.includes(tag);
+            }
+            return false;
+          })
+        );
+      }
+
+      console.groupEnd();
+    },
   };
 };
